@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "*.css": "postcss"
+    },
+    "css.validate": false,
+    "postcss.validate": false,
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "tailwindCSS.includeLanguages": {
+        "javascript": "javascript",
+        "html": "HTML",
+        "plaintext": "html",
+        "css": "postcss"
+    },
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "tailwindCSS.experimental.classRegex": [
+        "className\\s*:\\s*[\"']([^\"']*)[\"']"
+    ],
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+    }
+}

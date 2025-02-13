@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real Estate DApp</title>
+    <style>
+      #root {
+        min-height: 100vh;
+      }
+      .initial-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+    </style>
+    <script>
+      window.global = window;
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <div class="initial-loading">
+        <div>Loading application...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

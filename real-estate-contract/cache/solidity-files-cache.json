@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\evyatar\\Documents\\Smart contract\\real-estate-contract\\contracts\\RealEstateContract.sol": {
+      "lastModificationDate": 1738328553535,
+      "contentHash": "d81b50c83ba9a5a4562ab24c7b57f420",
+      "sourceName": "contracts/RealEstateContract.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "RealEstateContract"
+      ]
+    }
+  }
+}
