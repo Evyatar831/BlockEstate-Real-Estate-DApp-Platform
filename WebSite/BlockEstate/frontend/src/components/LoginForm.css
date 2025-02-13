@@ -1,0 +1,123 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  padding: 3rem 1rem;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+.login-card {
+  width: 400px;
+  padding: 3rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+  text-align: center;
+  padding: 2rem 2rem 1rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #2d3748;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.login-form {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-input {
+  width: 94%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  transition: border-color 0.3s ease;
+}
+
+.login-input:focus {
+  border-color: #4299e1;
+  outline: none;
+}
+
+.login-button {
+  width: 50%;
+  margin: 0 auto;
+  padding: 0.5rem;
+  background: linear-gradient(90deg, #0070f3, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-button:hover {
+  background: linear-gradient(90deg, #005bb5, #2563eb);
+}
+
+.login-error {
+  background-color: #fed7d7;
+  color: #c53030;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-blue-500 {
+  color: #3182ce;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.text-blue-500:hover {
+  color: #2c5282;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    width: 90%;
+    padding: 1.5rem;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+  color: #1a202c;
+}
