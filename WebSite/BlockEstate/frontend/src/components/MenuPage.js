@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 
-=======
-// Updated MenuPage.js for real estate
->>>>>>> efe802b92673bfcb2b00250be6a6b08bc6b3b6aa
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MenuPage.css';
