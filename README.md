@@ -1,170 +1,191 @@
-# BlockEstate Project
+# BlockEstate - Real Estate DApp Platform
 
-## Setup Instructions
+BlockEstate is a decentralized real estate platform that combines blockchain technology with traditional real estate transactions. The project consists of three main components: a smart contract backend for property transactions, a React-based frontend application, and a Django backend server for user management.
 
-### Prerequisites
-- Node.js (v14+)
-- Python (3.8+)
+## Project Structure
 
--npm (v6.14.0 or later)
--Hardhat (v2.19.0 or later)
--MetaMask browser extension
-
-
-### Frontend Setup
-```bash
-
-
-
-### TERMINAL A- TO run the web site
-cd website\BlockEstate\frontend
-npm run start
-############################
-
-### TERMINAL B- TO run the Server
-cd website\BlockEstate\backend
-#(for windows)
-env\Scripts\activate
-python manage.py runserver
-############################
-
-### TERMINAL C- TO deploy test blockchain
-cd "C:\Users\evyatar\Documents\Smart contract\real-estate-contract"
-npx hardhat node
-############################
-
-### TERMINAL D- TO deploy -RealEstateContract
-cd "C:\Users\evyatar\Documents\Smart contract\real-estate-contract"
-npx hardhat run scripts/deploy.js --network localhost
-############################
-
-
-
-
-
-# Install dependencies
-npm install
-# Start development server
-npm start
+```
+📦 BlockEstate
+├── real-estate-contract/       # Smart contract implementation
+│   ├── contracts/             # Solidity smart contracts
+│   ├── frontend/              # Contract-specific frontend
+│   ├── scripts/               # Deployment scripts
+│   └── test/                  # Contract tests
+│
+└── WebSite/BlockEstate/       # Main web application
+    ├── backend/               # Django backend server
+    │   ├── api/              # REST API implementation
+    │   ├── core/             # Core functionality
+    │   ├── users/            # User management
+    │   └── env/              # Virtual environment
+    │
+    └── frontend/             # React frontend application
+        ├── public/           # Static files
+        ├── src/              # Source code
+        │   ├── components/   # React components
+        │   └── real-estate-package/  # Real estate specific components
+        └── build/            # Production build
 ```
 
-### Backend Setup
+## Prerequisites
+
+- Node.js (v14+)
+- Python (3.8+)
+- npm (v6.14.0 or later)
+- Hardhat (v2.19.0 or later)
+- MetaMask browser extension
+- Git
+
+## Installation and Setup
+
+### 1. Smart Contract Deployment
+
+```bash
+# Terminal A - Start local blockchain
+cd real-estate-contract
+npx hardhat node
+
+# Terminal B - Deploy smart contract
+cd real-estate-contract
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+### 2. Backend Setup
+
 ```bash
 # Navigate to backend directory
-cd website\BlockEstate\backend
+cd WebSite/BlockEstate/backend
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv env
 
-# Activate virtual environment
-# Windows:
+# Windows
 env\Scripts\activate
-# Unix/macOS:
+# Unix/macOS
 source env/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
-### Create .env file at the backend folder and copy inside
-```
-SECRET_KEY=
-```
+# Create .env file
+echo "SECRET_KEY=your_generated_secret_key" > .env
 
-### Generate a new Django secret key
-Write in the terminal:
-```
+# Generate Django secret key
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-Copy the output to "SECRET_KEY"
 
 # Run migrations
-```
 python manage.py makemigrations api
 python manage.py makemigrations
 python manage.py migrate
-```
 
-### Create a superuser (admin):
-```
+# Create superuser
 python manage.py createsuperuser
-```
-Follow the prompts to set the username, email, and password.
 
-
-### Start the development server:
-```
+# Start backend server
 python manage.py runserver
 ```
 
-### Features
+### 3. Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd WebSite/BlockEstate/frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
+## Running the Application
+
+You'll need four terminal windows to run all components:
+
+1. Terminal A: Local Blockchain
+```bash
+cd real-estate-contract
+npx hardhat node
+```
+
+2. Terminal B: Smart Contract Deployment
+```bash
+cd real-estate-contract
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+3. Terminal C: Backend Server
+```bash
+cd WebSite/BlockEstate/backend
+env\Scripts\activate  # Windows
+python manage.py runserver
+```
+
+4. Terminal D: Frontend Application
+```bash
+cd WebSite/BlockEstate/frontend
+npm start
+```
+
+## Features
+
+### Smart Contract
+- Property listing and management
+- Secure property transactions
+- Ownership verification
+- Transaction history
+
+### Web Application
 - User authentication (login/register)
 - Password reset functionality
 - Subscription management
 - Admin dashboard
 - User profile management
+- Property listing interface
+- Real-time transaction updates
 
-### API Endpoints
-- `/api/login/` - User login
-- `/api/register/` - User registration
+## API Endpoints
+
+- `/api/login/` - User authentication
+- `/api/register/` - New user registration
 - `/api/forgot-password/` - Password reset
 - `/api/user/` - User information
-- `/api/users/` - User management (admin)
+- `/api/users/` - User management (admin only)
 - `/api/user/subscriptions/` - Subscription management
 
+## Default Ports
 
-### Common Issues
-1. Database migration errors:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
+- Hardhat Network: http://localhost:8545
+
+## Troubleshooting
+
+### Database Issues
 ```bash
 python manage.py makemigrations
 python manage.py migrate --run-syncdb
 ```
 
-2. Node modules issues:
+### Node Module Issues
 ```bash
 rm -rf node_modules
 npm install
 ```
 
-3. Port conflicts:
-- Frontend runs on port 3000
-- Backend runs on port 8000
+### MetaMask Connection
+1. Ensure MetaMask is connected to Hardhat Network (localhost:8545)
+2. Import a test account using private keys from Hardhat node
+3. Switch to the imported account
 
+## Contributing
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
+## License
 
-### DEPLOYMENT  for  Smart Contract!
-
-
-### Prerequisites
-### Before beginning the deployment process, ensure you have the following installed:
-
-Node.js (v14.0.0 or later)
-npm (v6.14.0 or later)
-Hardhat (v2.19.0 or later)
-MetaMask browser extension
-
-### The main contract file is located at contracts/RealEstateContract.sol
-
-
-
-
-### Environment Setup
-### First, navigate to the smart contract directory and install the required dependencies:
-cd real-estate-contract
-npm install
-
-
-
-### TERMINAL A- deploy test blockchain
-cd "C:\Users\evyatar\Documents\Smart contract\real-estate-contract"
-npx hardhat node
-
-
-### TERMINAL B-  deploy -RealEstateContract
-cd "C:\Users\evyatar\Documents\Smart contract\real-estate-contract"
-npx hardhat run scripts/deploy.js --network localhost
-
-###  FRONTEND-   run real estate app only
-cd "C:\Users\evyatar\Documents\Smart contract\real-estate-contract\frontend"
-npm run dev
+This project is licensed under the MIT License - see the LICENSE file for details.
