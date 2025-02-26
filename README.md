@@ -22,10 +22,10 @@ npm run start
 ############################
 
 ### TERMINAL B- TO run the Server
-cd website\BlockEstate\backend
-#(for windows)
+cd WebSite/BlockEstate/backend
 env\Scripts\activate
 python manage.py runserver
+
 ############################
 
 ### TERMINAL C- TO deploy test blockchain

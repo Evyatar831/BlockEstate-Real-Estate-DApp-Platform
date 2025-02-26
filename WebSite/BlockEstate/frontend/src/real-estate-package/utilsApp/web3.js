@@ -1,6 +1,5 @@
 
 
-
 // src/utils/web3.js
 
 import Web3 from 'web3';
@@ -49,15 +48,34 @@ export const initializeContract = async (web3) => {
     }
 };
 
+// Update this function in your web3.js utility file
+
 export const connectWallet = async () => {
     if (!window.ethereum) {
         throw new Error('MetaMask is not installed');
     }
 
     try {
-        const accounts = await window.ethereum.request({
+        // Check if we have a pending request
+        if (window.ethereum._metamask && window.ethereum._metamask.isUnlocked) {
+            const isUnlocked = await window.ethereum._metamask.isUnlocked();
+            if (!isUnlocked) {
+                throw new Error('MetaMask is locked. Please unlock it first.');
+            }
+        }
+
+        // Add a timeout to prevent hanging if MetaMask is minimized
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timed out. Please check if MetaMask popup is open.')), 3000)
+        );
+        
+        // Create the accounts request
+        const accountsPromise = window.ethereum.request({
             method: 'eth_requestAccounts'
         });
+        
+        // Race between the timeout and the actual request
+        const accounts = await Promise.race([accountsPromise, timeoutPromise]);
 
         if (!accounts || accounts.length === 0) {
             throw new Error('No accounts found. Please unlock MetaMask.');
@@ -66,9 +84,18 @@ export const connectWallet = async () => {
         return accounts[0];
     } catch (error) {
         console.error('Wallet connection error:', error);
+        
+        // Improve error handling with more specific messages
         if (error.code === 4001) {
             throw new Error('Connection rejected. Please approve the connection request in MetaMask.');
+        } else if (error.code === -32002) {
+            throw new Error('Request already pending. Please check MetaMask extension.');
+        } else if (error.message.includes('already pending')) {
+            throw new Error('Request already pending. Please check MetaMask extension.');
+        } else if (error.message.includes('timed out')) {
+            throw new Error('Connection timed out. Please check if MetaMask popup is open and respond to it.');
         }
+        
         throw new Error('Failed to connect wallet: ' + error.message);
     }
 };

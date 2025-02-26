@@ -7,7 +7,7 @@ def validate_password(password, user=None):
     """
     errors = []
     
-    # Create a more user-friendly message
+    
     requirements = []
     
     # Check length

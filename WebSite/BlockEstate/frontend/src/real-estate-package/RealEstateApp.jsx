@@ -1,30 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent } from './components/ui/card';
-import { Button } from './components/ui/button';
-import { Alert, AlertDescription } from './components/ui/alert';
-import { Building, Wallet, RefreshCw, AlertCircle, Loader2 } from 'lucide-react';
-import { ScrollArea } from './components/ui/scroll-area';
-import ContractDetails from './components/ui/ContractDetails';
-import PropertyForm from './components/ui/PropertyForm';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardHeader, CardContent } from '../real-estate-package/components/ui/card';
+import { Button } from '../real-estate-package/components/ui/button';
+import { Alert, AlertDescription } from '../real-estate-package/components/ui/alert';
+import WalletConnectionError from '../real-estate-package/components/ui/WalletConnectionError';
+import PropertyForm from '../real-estate-package/components/ui/PropertyForm';
 
-// Web3 Utilities
+import { 
+    Building, 
+    Wallet, 
+    ArrowLeft, 
+    AlertCircle, 
+    Loader2 
+} from 'lucide-react';
+
 import { 
     initializeWeb3, 
     initializeContract, 
     connectWallet, 
-    switchToHardhatNetwork, 
-    formatPrice,
-    checkPropertyAvailability
-} from './utilsApp/web3';
+    switchToHardhatNetwork
+} from '../real-estate-package/utilsApp/web3';
 
-// Error Handling Utilities
-import { 
-    validatePropertyData,
-    validateTransaction,
-    calculatePropertyPurchaseGas,
-    displayErrorMessage,
-    validatePropertyFormData
-} from './utilsApp/errors';
+import { displayErrorMessage } from '../real-estate-package/utilsApp/errors';
 
 const RealEstateApp = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -32,16 +29,27 @@ const RealEstateApp = () => {
     const [account, setAccount] = useState('');
     const [contract, setContract] = useState(null);
     const [web3Instance, setWeb3Instance] = useState(null);
-    const [properties, setProperties] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [connectionStatus, setConnectionStatus] = useState('Initializing...');
+    const [walletConnectionRequired, setWalletConnectionRequired] = useState(false);
+    const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(!!window.ethereum);
+    const [connectionPending, setConnectionPending] = useState(false);
 
     const initializeBlockchain = async () => {
         setIsLoading(true);
         setError('');
+        setConnectionPending(false);
         
         try {
+            
+            if (!window.ethereum) {
+                setIsMetaMaskInstalled(false);
+                setWalletConnectionRequired(true);
+                setIsLoading(false);
+                return;
+            }
+
             setConnectionStatus('Initializing Web3...');
             const web3 = await initializeWeb3();
             setWeb3Instance(web3);
@@ -49,153 +57,159 @@ const RealEstateApp = () => {
             const accounts = await web3.eth.getAccounts();
             if (accounts.length > 0) {
                 setAccount(accounts[0]);
+            } else {
+                
+                setWalletConnectionRequired(true);
+                setIsLoading(false);
+                return;
             }
 
             setConnectionStatus('Checking network...');
-            const chainId = await web3.eth.getChainId();
-            
-            if (chainId !== 31337) {
-                setConnectionStatus('Switching to Hardhat network...');
-                await switchToHardhatNetwork();
+            try {
+                const chainId = await web3.eth.getChainId();
+                
+                if (chainId !== 31337) {
+                    setConnectionStatus('Switching to Hardhat network...');
+                    await switchToHardhatNetwork();
+                }
+            } catch (networkError) {
+                console.error('Network error:', networkError);
+                
             }
 
             setConnectionStatus('Initializing contract...');
-            const contractInstance = await initializeContract(web3);
-            setContract(contractInstance);
-            
-            await loadProperties(contractInstance);
-            setConnectionStatus('Connected');
+            try {
+                const contractInstance = await initializeContract(web3);
+                setContract(contractInstance);
+                setConnectionStatus('Connected');
+            } catch (contractError) {
+                console.error('Contract initialization error:', contractError);
+                setError('Could not connect to smart contract. Please ensure Hardhat is running.');
+            }
             
         } catch (err) {
-            setError(displayErrorMessage(err, 'Initialization Error'));
+            console.error('Initialization error:', err);
+            
+            // Check if error is related to wallet connection
+            if (err.code === -32002 || 
+                (err.message && (
+                  err.message.includes('already pending') ||
+                  err.message.includes('Request already pending')
+                ))
+            ) {
+                setConnectionPending(true);
+                setWalletConnectionRequired(true);
+            } else if (err.message && (
+                err.message.includes('MetaMask') || 
+                err.message.includes('wallet') || 
+                err.message.includes('connect')
+            )) {
+                setWalletConnectionRequired(true);
+            } else {
+                setError(displayErrorMessage(err, 'Initialization Error'));
+            }
+            
             setConnectionStatus('Connection failed');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const loadProperties = async (contractInstance = contract) => {
-        try {
-            if (!contractInstance) throw new Error('Contract not initialized');
-            const results = await contractInstance.methods.getAllProperties().call();
-            setProperties(results || []);
-        } catch (err) {
-            setError(displayErrorMessage(err, 'Failed to load properties'));
-        }
-    };
     const handlePropertySubmit = async (propertyData) => {
-        console.log('Starting property submission:', propertyData);
         setIsProcessing(true);
         setError('');
         setSuccess('');
     
         try {
             if (!contract || !account || !web3Instance) {
-                throw new Error('Please ensure your wallet is connected');
+                throw new Error('Please connect your wallet before listing a property');
             }
     
-            // Validate property data
-            await validatePropertyData(propertyData, contract);
-    
-            // Convert price to Wei with proper BigInt handling
-            const priceString = propertyData.price.toString();
-            const priceInWei = web3Instance.utils.toWei(priceString, 'ether');
             
-            // Ensure price is handled as string to avoid BigInt mixing
-            const transaction = await contract.methods.createProperty(
-                propertyData.id,
-                propertyData.title,
-                propertyData.description,
-                priceInWei.toString(), // Convert to string to avoid BigInt mixing
-                propertyData.location,
-                []
-            ).send({
-                from: account,
-                gas: 500000,
-                gasPrice: (await web3Instance.eth.getGasPrice()).toString() // Convert gas price to string
-            });
+            if (!propertyData || typeof propertyData !== 'object') {
+                throw new Error('Invalid property data provided');
+            }
     
-            console.log('Transaction successful:', transaction);
-            await loadProperties();
-            setSuccess(`Property listed successfully! Transaction hash: ${transaction.transactionHash}`);
+           
+            const properties = await contract.methods.getAllProperties().call();
+            const propertyExists = properties.some(prop => 
+                prop && prop.id && prop.id.toLowerCase() === propertyData.id.toLowerCase()
+            );
+    
+            if (propertyExists) {
+                throw new Error(`Property ID "${propertyData.id}" already exists. Please choose a unique identifier.`);
+            }
+    
+            try {
+                console.log('Submitting property with documents:', propertyData.documents);
+                
+                
+                await contract.methods.createProperty(
+                    propertyData.id,
+                    propertyData.title,
+                    propertyData.description || '',
+                    propertyData.price,
+                    propertyData.location,
+                    propertyData.documents || []
+                ).send({
+                    from: account,
+                    gas: 2000000
+                });
+        
+                setSuccess('Property listed successfully!');
+            } catch (err) {
+                
+                if (err.message.includes('Property ID already exists')) {
+                    throw new Error(`Property ID "${propertyData.id}" is already registered on the blockchain. Please choose a different ID.`);
+                } else if (err.message.includes('insufficient funds')) {
+                    throw new Error('Your wallet has insufficient funds to complete this transaction. Please check your balance.');
+                } else if (err.message.includes('gas')) {
+                    throw new Error('Transaction failed due to gas estimation. Please try again with a different price or contact support.');
+                } else if (err.message.includes('user denied')) {
+                    throw new Error('Transaction was cancelled. Please try again if you want to list your property.');
+                } else {
+                    throw new Error(`Failed to list property: ${err.message}`);
+                }
+            }
+    
         } catch (err) {
-            console.error('Property submission error:', err);
-            setError(err.message || 'An unexpected error occurred');
+            console.error('Property listing error:', err);
+            setError(err.message);
         } finally {
             setIsProcessing(false);
         }
     };
 
-    const handlePurchase = async (propertyId) => {
-        setIsProcessing(true);
-        setError('');
-        setSuccess('');
-    
+    const handleConnectWallet = async () => {
         try {
-            if (!contract || !account || !web3Instance) {
-                throw new Error('Please ensure your wallet is connected');
-            }
-    
-            const allProperties = await contract.methods.getAllProperties().call();
-            const property = allProperties.find(p => p.id === propertyId);
+            setConnectionPending(false);
+            const address = await connectWallet();
+            setAccount(address);
+            setWalletConnectionRequired(false);
             
-            if (!property) {
-                throw new Error('Property not found');
-            }
-    
-            if (!property.isActive) {
-                throw new Error('This property is no longer available for purchase');
-            }
-    
-            if (property.owner.toLowerCase() === account.toLowerCase()) {
-                throw new Error('You cannot purchase your own property');
-            }
-    
-            // Ensure we have a valid price value
-            if (!property.price) {
-                throw new Error('Invalid property price');
-            }
-    
-            const contractId = `${propertyId}-${Date.now()}`;
-            const propertyPrice = property.price.toString();
             
-            // Check balance using Web3's utils
-            const balance = await web3Instance.eth.getBalance(account);
-            const balanceInEther = web3Instance.utils.fromWei(balance, 'ether');
-            const priceInEther = web3Instance.utils.fromWei(propertyPrice, 'ether');
-            
-            if (Number(balanceInEther) < Number(priceInEther)) {
-                throw new Error('Insufficient funds to complete this purchase');
-            }
-    
-            // Execute the purchase transaction
-            const transaction = await contract.methods
-                .createContract(contractId, propertyId)
-                .send({
-                    from: account,
-                    value: propertyPrice,
-                    gas: '500000',
-                    gasPrice: await web3Instance.eth.getGasPrice()
-                });
-    
-            console.log('Purchase transaction successful:', transaction);
-            await loadProperties();
-            setSuccess(`Purchase completed successfully! Transaction hash: ${transaction.transactionHash}`);
-            
+            setIsLoading(true);
+            await initializeBlockchain();
         } catch (err) {
-            console.error('Purchase error:', err);
-            setError(err.message || 'Failed to complete purchase. Please try again.');
-        } finally {
-            setIsProcessing(false);
+            console.error('Connection error:', err);
+            
+            
+            if (err.code === -32002 || 
+                (err.message && (
+                    err.message.includes('already pending') ||
+                    err.message.includes('Request already pending') ||
+                    err.message.includes('timed out')
+                ))
+            ) {
+                setConnectionPending(true);
+            } else {
+                setError(displayErrorMessage(err, 'Wallet Connection Error'));
+            }
         }
     };
 
     useEffect(() => {
-        const init = async () => {
-            await initializeBlockchain();
-        };
-        
-        init();
+        initializeBlockchain();
         
         if (window.ethereum) {
             window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -213,15 +227,20 @@ const RealEstateApp = () => {
     const handleAccountsChanged = async (accounts) => {
         if (accounts.length > 0) {
             setAccount(accounts[0]);
-            await loadProperties(contract);
+            setWalletConnectionRequired(false);
+            setConnectionPending(false);
         } else {
             setAccount('');
-            setProperties([]);
-            setError('Please connect your wallet');
+            setWalletConnectionRequired(true);
         }
     };
 
-    // Render loading state
+    
+    const handleBackClick = (e) => {
+        e.preventDefault();
+        window.location.href = '/menu';
+    };
+
     if (isLoading) {
         return (
             <div className="container mx-auto p-4 min-h-screen flex items-center justify-center">
@@ -238,39 +257,28 @@ const RealEstateApp = () => {
         <div className="container mx-auto p-4 min-h-screen">
             <Card className="mb-6">
                 <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-2xl font-bold">Real Estate Marketplace</h1>
-                        <div className="flex gap-2">
+                    <div className="flex justify-between items-center flex-wrap gap-4">
+                        <div className="flex items-center gap-4">
                             <Button 
-                                onClick={() => loadProperties()} 
-                                disabled={!contract || isProcessing}
+                                onClick={handleBackClick}
+                                variant="outline"
                                 className="flex items-center gap-2"
                             >
-                                <RefreshCw className={`h-4 w-4 ${isProcessing ? 'animate-spin' : ''}`} />
-                                Refresh
+                                <ArrowLeft className="h-4 w-4" />
+                                Back to Menu
                             </Button>
-                            <Button 
-                                onClick={async () => {
-                                    try {
-                                        const address = await connectWallet();
-                                        setAccount(address);
-                                        await loadProperties(contract);
-                                    } catch (err) {
-                                        setError(displayErrorMessage(err, 'Wallet Connection Error'));
-                                    }
-                                }}
-                                disabled={isProcessing}
-                                className="flex items-center gap-2"
-                            >
-                                <Wallet className="h-4 w-4" />
-                                {account ? `${account.slice(0, 6)}...${account.slice(-4)}` : 'Connect Wallet'}
-                            </Button>
+                            <h1 className="text-2xl font-bold">List New Property</h1>
                         </div>
+                        {!walletConnectionRequired && (
+                            <div className="text-sm font-medium text-gray-700">
+                                Connected: {account.slice(0, 6)}...{account.slice(-4)}
+                            </div>
+                        )}
                     </div>
                 </CardHeader>
             </Card>
 
-            {error && (
+            {error && !walletConnectionRequired && (
                 <Alert variant="destructive" className="mb-6">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="ml-2">{error}</AlertDescription>
@@ -283,113 +291,30 @@ const RealEstateApp = () => {
                 </Alert>
             )}
 
-            <div className="grid md:grid-cols-2 gap-6">
-                <PropertyForm 
-                    onSubmit={handlePropertySubmit}
-                    contract={contract}
-                    isProcessing={isProcessing}
+            {walletConnectionRequired && (
+                <WalletConnectionError 
+                    onConnect={handleConnectWallet}
+                    isMetaMaskInstalled={isMetaMaskInstalled}
                 />
+            )}
 
-                <Card className="h-[calc(100vh-12rem)]">
+            {!walletConnectionRequired && (
+                <Card className="mb-6">
                     <CardHeader>
-                        <h2 className="text-xl font-semibold flex items-center gap-2">
-                            <Building className="h-5 w-5" />
-                            Listed Properties
-                        </h2>
+                        <h2 className="text-xl font-semibold">Property Details</h2>
                     </CardHeader>
-                    <CardContent className="p-0">
-                        <ScrollArea className="h-[calc(100vh-16rem)]">
-                            <div className="space-y-4 p-6">
-                                {properties.length === 0 ? (
-                                    <div className="text-center text-gray-500 py-8">
-                                        <Building className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p>No properties listed yet</p>
-                                        <p className="text-sm mt-2">Create your first property listing to get started</p>
-                                    </div>
-                                ) : (
-                                    properties.map((property, index) => (
-                                        <PropertyCard
-                                            key={index}
-                                            property={property}
-                                            account={account}
-                                            onPurchase={handlePurchase}
-                                            isProcessing={isProcessing}
-                                            web3Instance={web3Instance}
-                                            formatPrice={formatPrice}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        </ScrollArea>
+                    <CardContent>
+                        <PropertyForm 
+                            onSubmit={handlePropertySubmit}
+                            contract={contract}
+                            isProcessing={isProcessing}
+                            web3Instance={web3Instance}
+                            account={account}
+                        />
                     </CardContent>
                 </Card>
-            </div>
+            )}
         </div>
-    );
-};
-
-const PropertyCard = ({ property, account, onPurchase, isProcessing, web3Instance, formatPrice }) => {
-    return (
-        <Card className="p-4 hover:shadow-lg transition-shadow duration-200">
-            <div className="space-y-3">
-                <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-lg">{property.title}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        property.isActive 
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                    }`}>
-                        {property.isActive ? 'Active' : 'Sold'}
-                    </span>
-                </div>
-                
-                <div className="text-sm space-y-2">
-                    <p className="text-gray-600 italic">{property.description}</p>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <p className="font-medium text-gray-600">Location</p>
-                            <p>{property.location}</p>
-                        </div>
-                        <div>
-                            <p className="font-medium text-gray-600">Price</p>
-                            <p>{formatPrice(web3Instance, property.price)} ETH</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p className="font-medium text-gray-600">Owner</p>
-                        <p className="truncate text-xs">{property.owner}</p>
-                    </div>
-
-                    <div className="flex justify-between items-center pt-2">
-                        <p className="text-xs text-gray-500">
-                            Listed: {new Date(Number(property.createdAt) * 1000).toLocaleDateString()}
-                        </p>
-                        <ContractDetails 
-                            property={property}
-                            formatPrice={(price) => formatPrice(web3Instance, price)}
-                        />
-                    </div>
-                </div>
-
-                {property.isActive && property.owner.toLowerCase() !== account.toLowerCase() && (
-                    <Button 
-                        onClick={() => onPurchase(property.id)}
-                        disabled={isProcessing}
-                        className="w-full mt-4"
-                        variant="outline"
-                    >
-                        {isProcessing ? (
-                            <div className="flex items-center justify-center gap-2">
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Processing Purchase...
-                            </div>
-                        ) : 'Purchase Property'}
-                    </Button>
-                )}
-            </div>
-        </Card>
     );
 };
 

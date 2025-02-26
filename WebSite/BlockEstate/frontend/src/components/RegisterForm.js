@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './LoginForm.css';  // We can reuse the login styling
+import './LoginForm.css';  
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ const RegisterForm = () => {
       });
 
       const data = await response.json();
-      console.log('Response:', data);  // Debug log
+      console.log('Response:', data);  
 
       if (!response.ok) {
         throw new Error(data.error || 'Registration failed');
@@ -45,7 +45,7 @@ const RegisterForm = () => {
       navigate('/login');
       
     } catch (err) {
-      console.error('Full error:', err);  // Debug log
+      console.error('Full error:', err);  
       setError(err.message || 'Failed to connect to server');
     }
 };

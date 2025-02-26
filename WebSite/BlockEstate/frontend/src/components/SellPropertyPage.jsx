@@ -1,15 +1,14 @@
-// src/components/RealEstateIntegration.jsx
+
 import React, { useEffect } from 'react';
 import RealEstateApp from '../real-estate-package/RealEstateApp';
 import { useNavigate } from 'react-router-dom';
 import { Alert , AlertDescription } from '../real-estate-package/components/ui/alert';
-
-
 import { Card, CardHeader, CardContent } from '../real-estate-package/components//ui/card';
-
 import { AlertCircle, Building } from 'lucide-react';
 
-const RealEstateIntegration = () => {
+
+
+const SellPropertyPage = () => {
     const navigate = useNavigate();
     const isAuthenticated = localStorage.getItem('access');
 
@@ -70,4 +69,4 @@ const RealEstateIntegration = () => {
     );
 };
 
-export default RealEstateIntegration;
+export default SellPropertyPage;

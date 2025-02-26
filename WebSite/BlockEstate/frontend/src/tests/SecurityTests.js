@@ -1,4 +1,3 @@
-// src/tests/SecurityTests.js
 
 import { validateSecurity, sanitizeInput } from '../utilsApp/security';
 

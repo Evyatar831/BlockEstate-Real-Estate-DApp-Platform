@@ -2,31 +2,30 @@
 pragma solidity ^0.8.19;
 
 contract RealEstateContract {
-    // Structs
+    
     struct Property {
-        string id;              // Unique identifier for the property
-        string title;           // Property title/name
-        string description;     // Detailed property description
-        uint256 price;         // Property price in wei
-        string location;        // Physical location of the property
-        address owner;          // Current owner's address
-        string[] documents;     // Array of document references (IPFS hashes or URLs)
-        bool isActive;          // Whether the property is available for purchase
-        uint256 createdAt;     // Timestamp when the property was listed
+        string id;              
+        string title;           
+        string description;     
+        uint256 price;         
+        string location;        
+        address owner;          
+        string[] documents;     
+        bool isActive;          
+        uint256 createdAt;    
        
     }
 
     struct Contract {
-        string propertyId;     // Reference to the property
-        address buyer;         // Address of the buyer
-        address seller;        // Address of the seller
-        uint256 value;        // Transaction value in wei
-        uint256 createdAt;    // Timestamp of contract creation
-        bool isCompleted;     // Whether the contract has been fulfilled
-        string status;        // Current status of the contract
+        string propertyId;     
+        address buyer;         
+        address seller;        
+        uint256 value;        
+        uint256 createdAt;    
+        bool isCompleted;     
+        string status;        
     }
 
-    // State Variables
     mapping(string => Property) public properties;
     mapping(string => Contract) public contracts;
     string[] public propertyIds;
@@ -34,7 +33,6 @@ contract RealEstateContract {
     address public owner;
     uint256 public platformFee;
 
-    // Events
     event PropertyListed(
         string indexed id,
         string title,
@@ -74,7 +72,6 @@ contract RealEstateContract {
         uint256 timestamp
     );
 
-    // Modifiers
     modifier onlyOwner() {
         require(msg.sender == owner, "Only contract owner can call this function");
         _;
@@ -95,13 +92,13 @@ contract RealEstateContract {
         _;
     }
 
-    // Constructor
+    
     constructor() {
         owner = msg.sender;
-        platformFee = 25; // 0.25% fee (in basis points)
+        platformFee = 25; 
     }
 
-    // Core Functions
+    
     function createProperty(
         string memory _id,
         string memory _title,
@@ -151,14 +148,14 @@ contract RealEstateContract {
         require(msg.value == property.price, "Payment amount must match property price");
         require(contracts[_contractId].buyer == address(0), "Contract ID already exists");
        
-        // Calculate platform fee
+        
         uint256 fee = (msg.value * platformFee) / 10000;
         uint256 sellerAmount = msg.value - fee;
         
-        // Store the seller's address
+        
         address payable seller = payable(property.owner);
 
-        // Create contract record
+        
         contracts[_contractId] = Contract({
             propertyId: _propertyId,
             buyer: msg.sender,
@@ -169,18 +166,18 @@ contract RealEstateContract {
             status: "Created"
         });
 
-        // Update property status
+        
         property.owner = msg.sender;
         property.isActive = false;
 
-        // Transfer payments
+        
         (bool feeSuccess,) = payable(owner).call{value: fee}("");
         require(feeSuccess, "Platform fee transfer failed");
 
         (bool paymentSuccess,) = seller.call{value: sellerAmount}("");
         require(paymentSuccess, "Payment transfer to seller failed");
 
-        // Emit events
+        
         emit PropertySold(
             _propertyId,
             _contractId,
@@ -199,7 +196,7 @@ contract RealEstateContract {
         );
     }
 
-    // Property Management Functions
+    
     function updateProperty(
         string memory _propertyId,
         uint256 _newPrice,
@@ -219,7 +216,7 @@ contract RealEstateContract {
 
    
 
-    // View Functions
+    
     function getAllProperties() public view returns (Property[] memory) {
         Property[] memory allProperties = new Property[](propertyIds.length);
         
