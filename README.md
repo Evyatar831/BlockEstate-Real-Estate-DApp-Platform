@@ -4,48 +4,6 @@ BlockEstate is a decentralized real estate platform that combines blockchain tec
 
 ## Project Structure
 
-<<<<<<< HEAD
--npm (v6.14.0 or later)
--Hardhat (v2.19.0 or later)
--MetaMask browser extension
-
-
-### Frontend Setup
-```bash
-
-
-
-### TERMINAL A- TO run the web site
-cd website\BlockEstate\frontend
-npm run start
-############################
-
-### TERMINAL B- TO run the Server
-cd WebSite/BlockEstate/backend
-env\Scripts\activate
-python manage.py runserver
-
-############################
-
-### TERMINAL C- TO deploy test blockchain
-cd "C:\Users\evyatar\Documents\Smart contract\real-estate-contract"
-npx hardhat node
-############################
-
-### TERMINAL D- TO deploy -RealEstateContract
-cd "C:\Users\evyatar\Documents\Smart contract\real-estate-contract"
-npx hardhat run scripts/deploy.js --network localhost
-############################
-
-
-
-
-
-# Install dependencies
-npm install
-# Start development server
-npm start
-=======
 ```
 📦 BlockEstate
 ├── real-estate-contract/       # Smart contract implementation
@@ -67,7 +25,6 @@ npm start
         │   ├── components/   # React components
         │   └── real-estate-package/  # Real estate specific components
         └── build/            # Production build
->>>>>>> 37a5d2d7c04886de685b0efde18a9f9cbb2cf98a
 ```
 
 ## Prerequisites
