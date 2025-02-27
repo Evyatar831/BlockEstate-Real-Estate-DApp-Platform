@@ -92,7 +92,6 @@ BlockEstate revolutionizes real estate transactions by leveraging blockchain tec
         └── src/                       # Source code
             ├── components/            # React components
             │   ├── AboutPage.js       # About page
-            │   ├── AdminDashboard.js  # Admin interface
             │   ├── ForgotPassword.js  # Password recovery
             │   ├── LoginForm.js       # Authentication
             │   ├── MenuPage.js        # Main navigation
