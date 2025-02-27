@@ -107,8 +107,9 @@ BlockEstate revolutionizes real estate transactions by leveraging blockchain tec
                 ├── components/ui/     # UI components
                 ├── config/contract    # Contract configuration
                 ├── services/          # Backend services
-                │   ├── ipfsService.js  # IPFS integration
-                │   └── storageService.js # Storage management
+                │   ├── ipfsService.js     # IPFS integration
+                │   └── storageService.js  # Storage management
+                │   └──localStorageService  #local save
                 └── utilsApp/          # Utilities
                     ├── errors.js      # Error handling
                     ├── security.js    # Security utilities
