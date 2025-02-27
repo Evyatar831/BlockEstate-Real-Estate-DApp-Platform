@@ -139,8 +139,8 @@ npm start
 ### Web Application
 - User authentication (login/register)
 - Password reset functionality
-- Subscription management
-- Admin dashboard
+
+
 - User profile management
 - Property listing interface
 - Real-time transaction updates
