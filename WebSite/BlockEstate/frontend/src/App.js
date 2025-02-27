@@ -4,7 +4,6 @@ import Navbar from './components/Navbar';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import MenuPage from './components/MenuPage';
-import AdminDashboard from './components/AdminDashboard';
 import UserProfile from './components/UserProfile';
 import ForgotPassword from './components/ForgotPassword';
 import AboutPage from './components/AboutPage';
@@ -30,7 +29,6 @@ function App() {
           <Routes>
             <Route path="/" element={<LoginForm />} />
             <Route path="/login" element={<LoginForm />} />
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/register" element={<RegisterForm />} />
             <Route path="/menu" element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />
             <Route path="/menu" element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />

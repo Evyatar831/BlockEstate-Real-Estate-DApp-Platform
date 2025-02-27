@@ -1,11 +1,9 @@
-// src/utils/security.js
 
-// Base input sanitization
 export const sanitizeInput = (input) => {
     if (typeof input !== 'string') return input;
     
     return input
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/<[^>]*>/g, '') 
         .replace(/javascript:/gi, '')
         .replace(/on\w+=/gi, '')
         .replace(/data:/gi, '')
@@ -17,7 +15,7 @@ export const sanitizeInput = (input) => {
         .trim();
 };
 
-// Field-specific validation
+
 export const validateSecurity = (value, type) => {
     if (typeof value !== 'string') return value;
 
@@ -39,7 +37,7 @@ export const validateSecurity = (value, type) => {
     }
 };
 
-// Enhanced form validation with detailed error messages
+
 export const validateFormSecurity = (formData) => {
     const errors = {};
     const xssPatterns = [
@@ -56,7 +54,7 @@ export const validateFormSecurity = (formData) => {
 
     Object.entries(formData).forEach(([field, value]) => {
         if (typeof value === 'string') {
-            // Check for XSS patterns
+            
             for (const { pattern, message } of xssPatterns) {
                 if (pattern.test(value)) {
                     errors[field] = message;
@@ -64,7 +62,7 @@ export const validateFormSecurity = (formData) => {
                 }
             }
 
-            // Field-specific validation
+            
             switch (field) {
                 case 'id':
                     if (value.length > 50) {
@@ -107,13 +105,13 @@ export const validateFormSecurity = (formData) => {
     return errors;
 };
 
-// Input sanitization with validation rules
+
 export const sanitizeAndValidateInput = (value, type, maxLength) => {
     if (!value) return value;
 
     let sanitized = sanitizeInput(value);
 
-    // Apply type-specific validation rules
+    
     switch (type) {
         case 'text':
             sanitized = sanitized.replace(/[^\w\s-]/g, '');
@@ -126,7 +124,7 @@ export const sanitizeAndValidateInput = (value, type, maxLength) => {
             break;
     }
 
-    // Apply length limit if specified
+    
     if (maxLength) {
         sanitized = sanitized.slice(0, maxLength);
     }
@@ -134,7 +132,7 @@ export const sanitizeAndValidateInput = (value, type, maxLength) => {
     return sanitized;
 };
 
-// Validate specific property field
+
 export const validatePropertyField = (field, value) => {
     if (!value) return 'This field is required';
 

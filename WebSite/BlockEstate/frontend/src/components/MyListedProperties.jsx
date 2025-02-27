@@ -12,12 +12,10 @@ import {
     ArrowLeft,
     AlertCircle,
     Loader2,
-    Wallet,
     DollarSign,
     MapPin,
     Clock,
-    Hash,
-    FileText
+    Hash
 } from 'lucide-react';
 
 import { 
@@ -28,49 +26,79 @@ import {
 } from '../real-estate-package/utilsApp/web3';
 
 import { displayErrorMessage } from '../real-estate-package/utilsApp/errors';
-import { parseStorageReference } from '../real-estate-package/services/storageService';
+import { 
+    parseStorageReference, 
+    createStorageReference,
+    getImageUrl 
+} from '../real-estate-package/services/storageService';
 
-// Storage for keeping track of property listings
-const listedPropertiesStore = {
-  properties: {},
-  
-  addProperty: function(propertyId, owner, imageReference) {
-    this.properties[propertyId] = {
-      owner: owner.toLowerCase(),
-      imageReference: imageReference
-    };
-    this.saveToLocalStorage();
-  },
-  
-  wasListedBy: function(propertyId, owner) {
-    const data = this.properties[propertyId];
-    return data && data.owner && data.owner.toLowerCase() === owner.toLowerCase();
-  },
-  
-  getImageReference: function(propertyId) {
-    const data = this.properties[propertyId];
-    return data ? data.imageReference : null;
-  },
-  
-  saveToLocalStorage: function() {
-    try {
-      localStorage.setItem('listedProperties', JSON.stringify(this.properties));
-    } catch (err) {
-      console.error('Failed to save listed properties to localStorage:', err);
+
+class PropertyTrackingService {
+    constructor() {
+      this.STORAGE_KEY = 'listed_properties_tracking';
+      this.properties = this.load() || {};
     }
-  },
-  
-  loadFromLocalStorage: function() {
-    try {
-      const storedData = localStorage.getItem('listedProperties');
-      if (storedData) {
-        this.properties = JSON.parse(storedData);
+    
+   
+    trackProperty(propertyId, owner, imageReference) {
+      if (!propertyId || !owner) return;
+      
+      
+      
+      const existingEntry = this.properties[propertyId];
+      if (!existingEntry || existingEntry.owner.toLowerCase() === owner.toLowerCase()) {
+        this.properties[propertyId] = {
+          owner: owner.toLowerCase(),
+          imageReference: imageReference,
+          listingDate: Date.now(),
+          isListing: true 
+        };
+        this.save();
       }
-    } catch (err) {
-      console.error('Failed to load listed properties from localStorage:', err);
+    }
+    
+    
+    wasListedBy(propertyId, owner) {
+      if (!propertyId || !owner) return false;
+      
+      const data = this.properties[propertyId];
+      return data && 
+             data.owner && 
+             data.owner.toLowerCase() === owner.toLowerCase() && 
+             data.isListing === true; 
+    }
+    
+    
+    getImageReference(propertyId) {
+      if (!propertyId) return null;
+      
+      const data = this.properties[propertyId];
+      return data && data.isListing ? data.imageReference : null;
+    }
+    
+    
+    save() {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.properties));
+      } catch (err) {
+        console.error('Failed to save property tracking data:', err);
+      }
+    }
+    
+    
+    load() {
+      try {
+        const storedData = localStorage.getItem(this.STORAGE_KEY);
+        return storedData ? JSON.parse(storedData) : {};
+      } catch (err) {
+        console.error('Failed to load property tracking data:', err);
+        return {};
+      }
     }
   }
-};
+
+
+const propertyTracker = new PropertyTrackingService();
 
 const MyListedProperties = () => {
     const navigate = useNavigate();
@@ -92,7 +120,7 @@ const MyListedProperties = () => {
         setConnectionPending(false);
         
         try {
-            // Check if MetaMask is installed
+            
             if (!window.ethereum) {
                 setIsMetaMaskInstalled(false);
                 setWalletConnectionRequired(true);
@@ -107,13 +135,12 @@ const MyListedProperties = () => {
             if (accounts.length > 0) {
                 setAccount(accounts[0]);
             } else {
-                // MetaMask is installed but not connected
+                
                 setWalletConnectionRequired(true);
                 setIsLoading(false);
                 return;
             }
 
-            // Skip network checking/switching if causing issues
             try {
                 const contractInstance = await initializeContract(web3);
                 setContract(contractInstance);
@@ -123,13 +150,13 @@ const MyListedProperties = () => {
                 }
             } catch (contractError) {
                 console.error('Contract initialization error:', contractError);
-                setError('Could not connect to smart contract. Please ensure Hardhat is running.');
+                setError('Could not connect to smart contract. Please ensure Hardhat is running and the contract is deployed correctly.');
             }
             
         } catch (err) {
             console.error('Initialization error:', err);
             
-            // Check if error is related to wallet connection
+            
             if (err.code === -32002 || 
                 (err.message && (
                   err.message.includes('already pending') ||
@@ -166,63 +193,76 @@ const MyListedProperties = () => {
 
     const loadMyProperties = async (currentAccount, web3, contractInstance) => {
         try {
-            listedPropertiesStore.loadFromLocalStorage();
             
             const allProperties = await contractInstance.methods.getAllProperties().call();
             console.log('All blockchain properties:', allProperties.length);
             
-            const currentlyOwnedProperties = allProperties.filter(prop => 
-                prop.owner.toLowerCase() === currentAccount.toLowerCase()
+            
+            
+            const myListedProperties = [];
+            
+            
+            
+            const currentlyOwnedActiveProperties = allProperties.filter(prop => 
+                prop.owner.toLowerCase() === currentAccount.toLowerCase() && 
+                prop.isActive === true
             );
             
-            currentlyOwnedProperties.forEach(prop => {
+            
+            currentlyOwnedActiveProperties.forEach(prop => {
                 const mainImage = prop.documents && prop.documents.length > 0 ? prop.documents[0] : null;
-                listedPropertiesStore.addProperty(prop.id, currentAccount, mainImage);
+                propertyTracker.trackProperty(prop.id, currentAccount, mainImage);
+                myListedProperties.push(prop);
             });
             
-            const myPropertyDetails = await Promise.all(allProperties.map(async prop => {
-                const isCurrentlyOwned = prop.owner.toLowerCase() === currentAccount.toLowerCase();
-                const wasPreviouslyListed = listedPropertiesStore.wasListedBy(prop.id, currentAccount);
+            
+            
+            const soldProperties = allProperties.filter(prop => 
                 
-                if (isCurrentlyOwned || wasPreviouslyListed) {
-                    let mainImage = null;
+                prop.owner.toLowerCase() !== currentAccount.toLowerCase() && 
+                propertyTracker.wasListedBy(prop.id, currentAccount)
+            );
+            
+            
+            const combinedProperties = [...myListedProperties, ...soldProperties];
+            
+            
+            const processedProperties = await Promise.all(combinedProperties.map(async prop => {
+                
+                const isSold = prop.owner.toLowerCase() !== currentAccount.toLowerCase() || !prop.isActive;
+                
+                
+                let mainImage = null;
+                if (prop.documents && prop.documents.length > 0) {
+                    mainImage = prop.documents[0];
+                } else {
                     
-                    if (prop.documents && prop.documents.length > 0) {
-                        mainImage = prop.documents[0];
-                    }
-                    
-                    
-                    if ((!mainImage || !isCurrentlyOwned) && wasPreviouslyListed) {
-                        mainImage = listedPropertiesStore.getImageReference(prop.id) || mainImage;
-                    }
-                    
-                    
-                    if (mainImage) {
-                        const storageInfo = parseStorageReference(mainImage);
-                        if (storageInfo && storageInfo.storageType === 'local') {
-                            
-                            const imageData = localStorage.getItem(storageInfo.id);
-                            console.log(`Image for property ${prop.id}: ${storageInfo.id} - Data exists: ${!!imageData}`);
-                        }
-                    }
-                    
-                    
-                    const isSold = wasPreviouslyListed && !isCurrentlyOwned;
-                    
-                    return {
-                        ...prop,
-                        price: formatPriceValue(web3, prop.price),
-                        mainImage,
-                        wasListedByMe: true,
-                        isSold
-                    };
+                    mainImage = propertyTracker.getImageReference(prop.id);
                 }
-                return null;
+                
+                return {
+                    ...prop,
+                    price: formatPriceValue(web3, prop.price),
+                    mainImage,
+                    wasListedByMe: true,
+                    isSold,
+                    
+                    originalOwner: isSold ? currentAccount : null
+                };
             }));
             
+            console.log('My listed properties total:', processedProperties.length);
             
-            const processedProperties = myPropertyDetails.filter(Boolean);
-            console.log('Processed properties:', processedProperties.length);
+            
+            processedProperties.sort((a, b) => {
+                
+                if (a.isSold !== b.isSold) {
+                    return a.isSold ? 1 : -1;
+                }
+                
+                return Number(b.createdAt) - Number(a.createdAt);
+            });
+            
             setMyProperties(processedProperties);
         } catch (err) {
             console.error('Error loading properties:', err);
@@ -378,8 +418,8 @@ const MyListedProperties = () => {
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {myProperties.map((property, index) => {
-                                        // Check if the property is sold (not active or owner changed)
-                                        const isSold = !property.isActive || property.isSold;
+                                        
+                                        const isSold = property.isSold;
                                         
                                         return (
                                             <Card key={index} className="hover:shadow-lg transition-shadow overflow-hidden">
@@ -405,9 +445,9 @@ const MyListedProperties = () => {
                                                     )}
                                                 </div>
                                                 <CardContent className="p-4">
-                                                    <h3 className="font-semibold text-lg mb-2">{property.title}</h3>
+                                                    <h3 className="font-semibold text-lg mb-2 break-words">{property.title}</h3>
                                                     <div className="space-y-2">
-                                                        <div className="flex items-center text-sm text-gray-500">
+                                                        <div className="flex items-center text-sm text-gray-500 break-words">
                                                             <Hash className="h-4 w-4 mr-2" />
                                                             ID: {property.id}
                                                         </div>
@@ -422,12 +462,21 @@ const MyListedProperties = () => {
                                                         {isSold && (
                                                             <div className="flex items-center text-sm text-gray-500">
                                                                 <Clock className="h-4 w-4 mr-2" />
-                                                                Sold Date: {new Date(Number(property.createdAt) * 1000).toLocaleDateString('en-GB')}
+                                                                Sold Date: {new Date(Number(property.createdAt) * 1000).toLocaleDateString()}
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div className="flex gap-2 mt-4">
-                                                        <ContractDetails property={property} formatPrice={formatPriceValue} />
+                                                        <ContractDetails 
+                                                            property={{
+                                                                ...property,
+                                                                
+                                                                owner: property.isSold ? 
+                                                                    `${property.owner} (Current Owner)` : 
+                                                                    property.owner
+                                                            }} 
+                                                            formatPrice={(price) => formatPriceValue(web3Instance, price)} 
+                                                        />
                                                     </div>
                                                 </CardContent>
                                             </Card>

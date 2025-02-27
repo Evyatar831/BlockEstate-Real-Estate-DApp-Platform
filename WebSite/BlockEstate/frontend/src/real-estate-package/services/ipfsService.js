@@ -1,10 +1,9 @@
 
 import { create } from 'ipfs-http-client';
 
-// Configure IPFS client - connect to public IPFS gateway or your own node
-
+// optional -Infura credentials
 const projectId = ''; 
-const projectSecret = ''; 
+const projectSecret = '';
 
 
 const hasInfuraCredentials = projectId && projectSecret;

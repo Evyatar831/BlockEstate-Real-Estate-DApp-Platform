@@ -64,7 +64,7 @@ const PropertyForm = ({ onSubmit, contract, isProcessing, web3Instance, account 
             name === 'description' ? 280 : undefined
         );
 
-        // Special handling for description
+        
         if (name === 'description') {
             const lines = value.split('\n');
             if (lines.length > 4) {
@@ -75,7 +75,7 @@ const PropertyForm = ({ onSubmit, contract, isProcessing, web3Instance, account 
             }
         }
 
-        // Special handling for price
+        
         if (name === 'price') {
             const numValue = parseFloat(sanitizedValue);
             if (numValue > 1000000) return;
@@ -210,7 +210,7 @@ const PropertyForm = ({ onSubmit, contract, isProcessing, web3Instance, account 
 
             const priceInWei = web3Instance.utils.toWei(property.price.toString(), 'ether');
             
-            // Create the documents array with image storage reference
+            
             const documents = [];
             if (property.imageStorageInfo) {
                 const storageRef = createStorageReference(property.imageStorageInfo);
@@ -228,7 +228,7 @@ const PropertyForm = ({ onSubmit, contract, isProcessing, web3Instance, account 
 
             await onSubmit(propertyData);
 
-            // Reset form after successful submission
+            
             setProperty({
                 id: '',
                 title: '',
@@ -270,7 +270,7 @@ const PropertyForm = ({ onSubmit, contract, isProcessing, web3Instance, account 
             <div>
                 <Input
                     name="id"
-                    placeholder="Property ID (letters, numbers, hyphens only)"
+                    placeholder="Property ID"
                     value={property.id}
                     onChange={handleInputChange}
                     required
@@ -336,7 +336,7 @@ const PropertyForm = ({ onSubmit, contract, isProcessing, web3Instance, account 
             <div>
                 <Input
                     name="title"
-                    placeholder="Property Title"
+                    placeholder="Property Title (English Only)"
                     value={property.title}
                     onChange={handleInputChange}
                     required
@@ -352,7 +352,7 @@ const PropertyForm = ({ onSubmit, contract, isProcessing, web3Instance, account 
             <div>
                 <Textarea
                     name="description"
-                    placeholder="Property Description (4 lines maximum)"
+                    placeholder="Property Description (English Only)"
                     value={property.description}
                     onChange={handleInputChange}
                     required

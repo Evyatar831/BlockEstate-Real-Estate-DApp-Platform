@@ -5,13 +5,7 @@ import './UserProfile.css';
 const UserProfile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [profileData, setProfileData] = useState({
-    username: '',
-    email: '',
-    currentPassword: '',
-  });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -29,11 +23,6 @@ const UserProfile = () => {
     .then(res => res.json())
     .then(data => {
       setUser(data);
-      setProfileData(prev => ({
-        ...prev,
-        username: data.username,
-        email: data.email
-      }));
     });
   }, []);
 
@@ -46,48 +35,11 @@ const UserProfile = () => {
     }
   }, [success]);
 
-  const handleProfileChange = (e) => {
-    setProfileData({
-      ...profileData,
-      [e.target.name]: e.target.value
-    });
-  };
-
   const handlePasswordChange = (e) => {
     setPasswordData({
       ...passwordData,
       [e.target.name]: e.target.value
     });
-  };
-
-  const handleProfileSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch('http://localhost:8000/api/user/update/', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access')}`
-        },
-        body: JSON.stringify(profileData)
-      });
-
-      if (!response.ok) throw new Error('Current Password is incorrect!');
-
-      const userData = await response.json();
-      setUser(userData);
-      setSuccess('Profile updated successfully');
-      setIsEditing(false);
-      setProfileData(prev => ({
-        ...prev,
-        currentPassword: ''
-      }));
-    } catch (err) {
-      setError(err.message);
-    }
   };
 
   const handlePasswordSubmit = async (e) => {
@@ -156,7 +108,7 @@ const UserProfile = () => {
         )}
         {success && <div className="success-message">{success}</div>}
 
-        {!isEditing && !isChangingPassword ? (
+        {!isChangingPassword ? (
           <>
             <div className="profile-info">
               <div className="info-group">
@@ -169,12 +121,6 @@ const UserProfile = () => {
               </div>
               <div className="button-group">
                 <button 
-                  className="edit-button"
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit Profile
-                </button>
-                <button 
                   className="password-button"
                   onClick={() => setIsChangingPassword(true)}
                 >
@@ -183,62 +129,6 @@ const UserProfile = () => {
               </div>
             </div>
           </>
-        ) : isEditing ? (
-          <form onSubmit={handleProfileSubmit} className="profile-form">
-            <div className="form-group">
-              <label>Username</label>
-              <input
-                type="text"
-                name="username"
-                value={profileData.username}
-                onChange={handleProfileChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={profileData.email}
-                onChange={handleProfileChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Current Password</label>
-              <input
-                type="password"
-                name="currentPassword"
-                value={profileData.currentPassword}
-                onChange={handleProfileChange}
-                placeholder="Enter current password to confirm changes"
-                required
-              />
-            </div>
-
-            <div className="button-group">
-              <button type="submit" className="save-button">
-                Save Changes
-              </button>
-              <button 
-                type="button" 
-                className="cancel-button"
-                onClick={() => {
-                  setIsEditing(false);
-                  setError('');
-                  setProfileData(prev => ({
-                    ...prev,
-                    currentPassword: ''
-                  }));
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
         ) : (
           <form onSubmit={handlePasswordSubmit} className="profile-form">
             <div className="form-group">

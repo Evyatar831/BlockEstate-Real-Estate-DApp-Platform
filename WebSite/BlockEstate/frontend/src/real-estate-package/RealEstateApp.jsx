@@ -84,7 +84,7 @@ const RealEstateApp = () => {
                 setConnectionStatus('Connected');
             } catch (contractError) {
                 console.error('Contract initialization error:', contractError);
-                setError('Could not connect to smart contract. Please ensure Hardhat is running.');
+                setError('Could not connect to smart contract. Please ensure Hardhat is running and the contract is deployed correctly.');
             }
             
         } catch (err) {

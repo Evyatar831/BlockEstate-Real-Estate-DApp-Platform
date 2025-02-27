@@ -1,7 +1,9 @@
 echo "# Dependencies
-node_modules/
+WebSite/BlockEstate/frontend/node_modules/
+real-estate-contract/node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
 .pnp
 .pnp.js
+.env

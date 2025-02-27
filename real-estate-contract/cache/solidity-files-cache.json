@@ -35,6 +35,41 @@
       "artifacts": [
         "RealEstateContract"
       ]
+    },
+    "C:\\Users\\evyatar\\Documents\\computer_security_course\\smart conttract project\\Smart contrac proj\\real-estate-contract\\contracts\\RealEstateContract.sol": {
+      "lastModificationDate": 1740674452069,
+      "contentHash": "e585accbaeb2c264d2f4a181a6b4e9e5",
+      "sourceName": "contracts/RealEstateContract.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "RealEstateContract"
+      ]
     }
   }
 }

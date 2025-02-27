@@ -64,7 +64,7 @@ export const parseStorageReference = (storageRef) => {
         url: getIPFSUrl(identifier)
       };
     } else if (storageType === 'local') {
-      // Get the image data from localStorage
+      
       const imageData = getImage(identifier);
       console.log('Retrieved local storage data for ID:', identifier, 'Data exists:', !!imageData);
       

@@ -62,7 +62,7 @@ const PropertyListingsPage = () => {
 
     const initializeAndLoadProperties = async () => {
         try {
-            // Check if MetaMask is installed
+            
             if (!window.ethereum) {
                 setIsMetaMaskInstalled(false);
                 setWalletConnectionRequired(true);
@@ -80,7 +80,7 @@ const PropertyListingsPage = () => {
             if (accounts.length > 0) {
                 setAccount(accounts[0]);
             } else {
-                // MetaMask is installed but not connected
+                
                 setWalletConnectionRequired(true);
                 setIsLoading(false);
                 return;
@@ -92,23 +92,40 @@ const PropertyListingsPage = () => {
                 .map(prop => ({
                     ...prop,
                     price: formatPrice(web3, prop.price),
-                    
                     mainImage: prop.documents && prop.documents.length > 0 ? prop.documents[0] : null
                 }));
 
             setProperties(formattedProperties);
             setFilteredProperties(formattedProperties);
         } catch (err) {
-            // Check if error is related to wallet connection
-            if (err.message && (
-                err.message.includes('MetaMask') || 
-                err.message.includes('wallet') || 
-                err.message.includes('connect')
-            )) {
+            console.error('Initialization error:', err);
+            
+            
+            if (
+                !window.ethereum || 
+                err.code === -32002 || 
+                err.code === 4001 ||
+                (err.message && (
+                    err.message.includes('MetaMask') || 
+                    err.message.includes('wallet') || 
+                    err.message.includes('connect') ||
+                    err.message.includes('account') ||
+                    err.message.includes('ethereum') ||
+                    err.message.toLowerCase().includes('user denied') ||
+                    err.message.includes('network')
+                ))
+            ) {
+                
                 setWalletConnectionRequired(true);
+                setError(''); 
+            } else if (err.message && (
+                err.message.includes('Contract not found') || 
+                err.message.includes('contract') ||
+                err.message.includes('Contract initialization error')
+            )) {
+                setError('Could not connect to smart contract. Please ensure Hardhat is running and the contract is deployed correctly.');
             } else {
                 setError('Failed to load properties. Please try again later.');
-                console.error('Property loading error:', err);
             }
         } finally {
             setIsLoading(false);
@@ -120,11 +137,26 @@ const PropertyListingsPage = () => {
             const address = await connectWallet();
             setAccount(address);
             setWalletConnectionRequired(false);
-            // Reload properties after successful connection
+            
             setIsLoading(true);
             await initializeAndLoadProperties();
         } catch (err) {
-            setError(displayErrorMessage(err, 'Wallet Connection Error'));
+            console.error('Connection error:', err);
+            
+            
+            if (err.code === -32002 || 
+                (err.message && (
+                    err.message.includes('already pending') ||
+                    err.message.includes('Request already pending') ||
+                    err.message.includes('timed out')
+                ))
+            ) {
+                
+                setWalletConnectionRequired(true);
+            } else {
+                setError(displayErrorMessage(err, 'Wallet Connection Error'));
+            }
+            setIsLoading(false);
         }
     };
 
@@ -190,19 +222,19 @@ const PropertyListingsPage = () => {
         }
     };
 
-    // Handle search input with XSS protection
+    
     const handleSearchChange = (e) => {
         const sanitizedValue = sanitizeAndValidateInput(e.target.value, 'text', 100);
         setSearchTerm(sanitizedValue);
     };
 
-    // Handle price range inputs with validation
+    
     const handlePriceRangeChange = (field, value) => {
         const sanitizedValue = sanitizeAndValidateInput(value, 'number');
         setPriceRange(prev => ({ ...prev, [field]: sanitizedValue }));
     };
 
-    // Apply filters to properties with sanitized inputs
+    
     useEffect(() => {
         let filtered = [...properties];
 
@@ -296,19 +328,12 @@ const PropertyListingsPage = () => {
                         )}
                     </div>
 
-                    {walletConnectionRequired && (
-                        <WalletConnectionError 
-                            onConnect={handleConnectWallet}
-                            isMetaMaskInstalled={isMetaMaskInstalled}
-                        />
-                    )}
-
                     {!walletConnectionRequired && (
                         <div className="space-y-4">
                             <div className="relative">
                                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                 <Input
-                                    placeholder="Search properties by title or location..."
+                                    placeholder="Search properties by title or location (English Only)..."
                                     value={searchTerm}
                                     onChange={handleSearchChange}
                                     className="pl-9"
@@ -349,21 +374,26 @@ const PropertyListingsPage = () => {
                     )}
                 </CardHeader>
 
-                <CardContent>
-                    {error && (
-                        <Alert variant="destructive" className="mb-6">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
+                {walletConnectionRequired ? (
+                    <WalletConnectionError 
+                        onConnect={handleConnectWallet}
+                        isMetaMaskInstalled={isMetaMaskInstalled}
+                    />
+                ) : (
+                    <CardContent>
+                        {error && (
+                            <Alert variant="destructive" className="mb-6">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
 
-                    {success && (
-                        <Alert className="mb-6 bg-green-50 border-green-200">
-                            <AlertDescription className="text-green-800">{success}</AlertDescription>
-                        </Alert>
-                    )}
+                        {success && (
+                            <Alert className="mb-6 bg-green-50 border-green-200">
+                                <AlertDescription className="text-green-800">{success}</AlertDescription>
+                            </Alert>
+                        )}
 
-                    {!walletConnectionRequired && (
                         <ScrollArea className="h-[calc(100vh-300px)]">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {filteredProperties.map((property, index) => (
@@ -382,11 +412,11 @@ const PropertyListingsPage = () => {
                                             )}
                                         </div>
                                         <CardContent className="p-4">
-                                            <h3 className="font-semibold text-lg mb-2">{property.title}</h3>
-                                            <p className="text-sm text-gray-500 mb-2">ID: {property.id}</p>
+                                            <h3 className="font-semibold text-lg mb-2 line-clamp-2 h-14 break-words ">{property.title}</h3>
+                                            <p className="text-sm text-gray-500 mb-2 line-clamp-2 h-14 overflow-hidden break-all" >ID: {property.id}</p>
                                             <div className="space-y-2">
                                                 <div className="flex items-center text-sm text-gray-500">
-                                                    <MapPin className="h-4 w-4 mr-2" />
+                                                    <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                                                     {property.location}
                                                 </div>
                                                 <div className="flex items-center text-sm font-medium">
@@ -433,14 +463,14 @@ const PropertyListingsPage = () => {
                                 </div>
                             )}
                         </ScrollArea>
-                    )}
-                </CardContent>
+                    </CardContent>
+                )}
             </Card>
 
             <Dialog open={!!selectedProperty} onOpenChange={() => setSelectedProperty(null)}>
                 <DialogContent className="max-w-2xl bg-white max-h-[90vh]">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold text-gray-900">
+                        <DialogTitle className="text-xl font-bold text-gray-900 whitespace-normal break-words">
                             {selectedProperty?.title}
                         </DialogTitle>
                     </DialogHeader>
@@ -463,11 +493,12 @@ const PropertyListingsPage = () => {
                                 </div>
                                 
                                 <div className="space-y-4">
-                                    {/* Property ID displayed prominently */}
+                                    { }
                                     <PropertyInfo
                                         icon={Hash}
                                         label="Property ID"
                                         value={selectedProperty.id}
+                                        className="break-all"
                                     />
                                     
                                     <div className="grid grid-cols-2 gap-4">
@@ -499,7 +530,7 @@ const PropertyListingsPage = () => {
 
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <h3 className="font-medium text-gray-900 mb-2">Description</h3>
-                                    <div className="text-gray-600 leading-relaxed overflow-y-auto max-h-[200px] pr-2">
+                                    <div className="text-gray-600 leading-relaxed overflow-y-auto max-h-[200px] pr-2 whitespace-normal break-words">
                                         {selectedProperty.description}
                                     </div>
                                 </div>

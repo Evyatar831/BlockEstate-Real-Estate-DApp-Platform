@@ -1,11 +1,11 @@
 
 
 
-// Property data validation
+
 export const validatePropertyFormData = (property) => {
     const errors = {};
     
-    // ID validation
+    
     if (!property.id || !property.id.trim()) {
         errors.id = 'Property ID is required';
     } else if (property.id.length < 3) {
@@ -14,7 +14,7 @@ export const validatePropertyFormData = (property) => {
         errors.id = 'Property ID can only contain letters, numbers, and hyphens';
     }
 
-    // Title validation
+    
     if (!property.title || !property.title.trim()) {
         errors.title = 'Title is required';
     } else if (property.title.includes('\n')) {
@@ -23,7 +23,7 @@ export const validatePropertyFormData = (property) => {
         errors.title = 'Title cannot exceed 100 characters';
     }
 
-    // Description validation
+    
     if (property.description) {
         const descriptionLines = property.description.split('\n').length;
         if (descriptionLines > 4) {
@@ -33,7 +33,7 @@ export const validatePropertyFormData = (property) => {
         }
     }
 
-    // Location validation
+   
     const validCities = [
         'Jerusalem', 'Tel Aviv', 'Haifa', 'Rishon LeZion',
         'Petah Tikva', 'Ashdod', 'Netanya', 'Beer Sheva',
@@ -46,7 +46,7 @@ export const validatePropertyFormData = (property) => {
         errors.location = 'Please select a valid city from the list';
     }
 
-    // Price validation
+    
     if (!property.price) {
         errors.price = 'Price is required';
     } else {
@@ -63,7 +63,7 @@ export const validatePropertyFormData = (property) => {
     return errors;
 };
 
-// Gas calculation and validation
+
 export const calculatePropertyPurchaseGas = async (contract, propertyId, contractId, account, value) => {
     try {
         const gasEstimate = await contract.methods
@@ -73,7 +73,7 @@ export const calculatePropertyPurchaseGas = async (contract, propertyId, contrac
                 value: value
             });
 
-        return Math.ceil(gasEstimate * 1.2); // Add 20% buffer
+        return Math.ceil(gasEstimate * 1.2); 
     } catch (error) {
         if (error.message.includes('Property must be verified')) {
             throw new Error('This property must be verified before purchase');
@@ -82,12 +82,12 @@ export const calculatePropertyPurchaseGas = async (contract, propertyId, contrac
     }
 };
 
-// Transaction validation
+
 export const validateTransaction = async (web3, account, value) => {
     try {
         const balance = await web3.eth.getBalance(account);
         const gasPrice = await web3.eth.getGasPrice();
-        const estimatedGas = '500000'; // Safe estimate
+        const estimatedGas = '500000'; 
         
         const totalCost = web3.utils.toBN(value).add(
             web3.utils.toBN(gasPrice).mul(web3.utils.toBN(estimatedGas))
@@ -106,9 +106,9 @@ export const validateTransaction = async (web3, account, value) => {
     }
 };
 
-// Property validation 
+ 
 export const validatePropertyData = async (property, contract) => {
-    // Basic data presence checks
+    
     if (!property.id?.trim()) {
         throw new Error('Property ID is required');
     }
@@ -123,7 +123,7 @@ export const validatePropertyData = async (property, contract) => {
     }
 
     try {
-        // Check for existing property
+        
         if (contract) {
             const properties = await contract.methods.getAllProperties().call();
             const exists = properties.some(p => p.id === property.id);
@@ -132,13 +132,13 @@ export const validatePropertyData = async (property, contract) => {
             }
         }
 
-        // Validate price format
+        
         const price = parseFloat(property.price);
         if (price > 1000000) {
             throw new Error('Price cannot exceed 1,000,000 ETH');
         }
 
-        // Validate description length
+        
         if (property.description) {
             const lines = property.description.split('\n');
             if (lines.length > 4) {
@@ -152,7 +152,7 @@ export const validatePropertyData = async (property, contract) => {
     }
 };
 
-// Web3 error handling
+
 export const handleWeb3Error = (error, context = '') => {
     let errorMessage = 'An unexpected error occurred.';
     
@@ -183,7 +183,7 @@ export const handleWeb3Error = (error, context = '') => {
     };
 };
 
-// Display error message
+
 export const displayErrorMessage = (error, context = '') => {
     const processedError = handleWeb3Error(error, context);
     console.error(`${processedError.context}: `, processedError.originalError);

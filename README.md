@@ -48,7 +48,7 @@ npx hardhat node
 # Terminal B - Deploy smart contract
 cd real-estate-contract
 npx hardhat run scripts/deploy.js --network localhost
-```
+
 
 ### 2. Backend Setup
 
@@ -123,6 +123,7 @@ python manage.py runserver
 
 4. Terminal D: Frontend Application
 ```bash
+
 cd WebSite/BlockEstate/frontend
 npm start
 ```

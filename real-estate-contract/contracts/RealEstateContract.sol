@@ -249,7 +249,7 @@ contract RealEstateContract {
         return activeProperties;
     }
 
-    // Admin Functions
+    
     function updatePlatformFee(uint256 _newFee) public onlyOwner {
         require(_newFee <= 1000, "Fee cannot exceed 10%");
         platformFee = _newFee;
@@ -263,6 +263,6 @@ contract RealEstateContract {
         require(success, "Fee withdrawal failed");
     }
 
-    // Receive function to accept ETH payments
+    
     receive() external payable {}
 }

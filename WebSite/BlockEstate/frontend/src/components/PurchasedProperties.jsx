@@ -47,7 +47,7 @@ const PurchasedProperties = () => {
             setError('');
             setConnectionPending(false);
             
-            // Check if MetaMask is installed
+            
             if (!window.ethereum) {
                 setIsMetaMaskInstalled(false);
                 setWalletConnectionRequired(true);
@@ -89,7 +89,15 @@ const PurchasedProperties = () => {
                 err.message.includes('connect')
             )) {
                 setWalletConnectionRequired(true);
-            } else {
+
+            } else if (err.message && (
+                err.message.includes('Contract not found') || 
+                err.message.includes('contract') ||
+                err.message.includes('Contract initialization error')
+            )) {
+                setError('Could not connect to smart contract. Please ensure Hardhat is running and the contract is deployed correctly.');
+            }
+            else {
                 setError(displayErrorMessage(err, 'Initialization Error'));
             }
         } finally {
@@ -97,11 +105,23 @@ const PurchasedProperties = () => {
         }
     };
 
+    
+    const formatPriceValue = (web3Instance, priceInWei) => {
+        if (!web3Instance || !priceInWei) return '0';
+        try {
+            return parseFloat(
+                web3Instance.utils.fromWei(priceInWei.toString(), 'ether')
+            ).toFixed(2);
+        } catch (error) {
+            console.error('Price formatting error:', error);
+            return '0';
+        }
+    };
+
     const loadPurchasedProperties = async (currentAccount, web3, contractInstance) => {
         try {
             
             const allProperties = await contractInstance.methods.getAllProperties().call();
-            
             
             
             const purchased = allProperties
@@ -119,9 +139,10 @@ const PurchasedProperties = () => {
                         mainImage = prop.documents[0];
                     }
                     
+                    
                     return {
                         ...prop,
-                        price: formatPrice(web3, prop.price),
+                        price: formatPriceValue(web3, prop.price),
                         mainImage,
                         purchaseDate: new Date(Number(prop.createdAt) * 1000).toLocaleDateString()
                     };
@@ -280,10 +301,10 @@ const PurchasedProperties = () => {
                                                 </div>
                                             </div>
                                             <CardContent className="p-4">
-                                                <h3 className="font-semibold text-lg mb-2">{property.title}</h3>
+                                                <h3 className="font-semibold text-lg mb-2 break-words">{property.title}</h3>
                                                 <div className="flex items-center mb-2">
                                                     <Hash className="h-4 w-4 text-gray-500 mr-1" />
-                                                    <span className="text-sm text-gray-500">ID: {property.id}</span>
+                                                    <span className="text-sm text-gray-500 break-words">ID: {property.id}</span>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <div className="flex items-center text-sm text-gray-500">
@@ -300,7 +321,10 @@ const PurchasedProperties = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2 mt-4">
-                                                    <ContractDetails property={property} formatPrice={formatPrice} />
+                                                    <ContractDetails 
+                                                        property={property} 
+                                                        formatPrice={(price) => formatPriceValue(web3Instance, price)} 
+                                                    />
                                                 </div>
                                             </CardContent>
                                         </Card>

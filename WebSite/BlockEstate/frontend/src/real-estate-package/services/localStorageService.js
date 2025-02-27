@@ -1,8 +1,7 @@
 
 
  //A simple fallback storage service when IPFS is not available
-//This stores images in localStorage (with size limitations)
- 
+
 const generateUniqueId = () => {
     return `img_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
   };
