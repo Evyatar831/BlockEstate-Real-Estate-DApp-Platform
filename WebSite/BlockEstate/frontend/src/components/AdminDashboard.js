@@ -90,7 +90,7 @@ const AdminDashboard = () => {
     const data = await response.json();
     
     if (response.ok) {
-      // If we're editing our own user, update currentUser state
+      
       if (currentUser && editingUser.id === currentUser.id) {
         setCurrentUser({
           ...currentUser,
@@ -130,7 +130,6 @@ const AdminDashboard = () => {
            <tr>
              <th>Username</th>
              <th>Email</th>
-             <th>Plan</th>
              <th>Role</th>
              <th>Actions</th>
            </tr>
@@ -140,10 +139,7 @@ const AdminDashboard = () => {
              <tr key={user.id}>
                <td>{user.username}</td>
                <td>{user.email}</td>
-               <td>
-                {user.subscription ? user.subscription.charAt(0).toUpperCase() + user.subscription.slice(1) : 'No Plan'}
-              </td>               
-              <td>{user.is_staff ? 'Admin' : 'User'}</td>
+               <td>{user.is_staff ? 'Admin' : 'User'}</td>
                <td>
                  <button 
                    className="edit-btn"
@@ -180,15 +176,6 @@ const AdminDashboard = () => {
              value={editingUser.email}
              onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
            />
-          <select
-            value={editingUser.subscription || ''}
-            onChange={(e) => setEditingUser({...editingUser, subscription: e.target.value})}
-          >
-            <option value="">No Plan</option>
-            <option value="basic">Basic Plan</option>
-            <option value="pro">Pro Plan</option>
-            <option value="enterprise">Enterprise Plan</option>
-          </select>
            <button type="submit">Save</button>
            <button type="button" onClick={() => setEditingUser(null)}>Cancel</button>
          </form>
