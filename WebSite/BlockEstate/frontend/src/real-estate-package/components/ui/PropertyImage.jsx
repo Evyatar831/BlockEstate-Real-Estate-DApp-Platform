@@ -44,7 +44,7 @@ const PropertyImage = ({ storageReference, alt, className = '' }) => {
                 
                 setImageUrl(url);
             } catch (err) {
-                console.error('Error loading image:', err);
+                console.warn('Error loading image:', err);
                 console.warn('NOTE: Image loading failures may be related to localStorage limitations. Images stored via localStorage are not shared between different browsers or private browsing sessions.');
                 setError(err.message);
             } finally {
@@ -63,7 +63,7 @@ const PropertyImage = ({ storageReference, alt, className = '' }) => {
                 alt={alt || 'Property image'} 
                 className="w-16 h-16 opacity-70"
             />
-            <p className="text-xs text-gray-400 mt-2">Image not available</p>
+            <p className="text-xs text-gray-400 mt-2"></p>
     
         </div>
       );
@@ -72,8 +72,11 @@ const PropertyImage = ({ storageReference, alt, className = '' }) => {
     if (error || !imageUrl) {
         return (
             <div className={`flex flex-col items-center justify-center bg-gray-100 rounded-lg ${className}`}>
-                <ImageIcon className="h-10 w-10 text-gray-400" />
-                <p className="text-xs text-gray-500 mt-2">Image not available</p>
+            <img 
+                src={defaultPropertyImage} 
+                alt={alt || 'Property image unavailable'} 
+                className="w-16 h-16 opacity-70"
+            />
             </div>
         );
     }

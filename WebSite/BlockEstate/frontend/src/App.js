@@ -6,6 +6,7 @@ import RegisterForm from './components/RegisterForm';
 import MenuPage from './components/MenuPage';
 import UserProfile from './components/UserProfile';
 import ForgotPassword from './components/ForgotPassword';
+import AdminDashboard from './components/AdminDashboard';
 import AboutPage from './components/AboutPage';
 import SellPropertyPage from './components/SellPropertyPage';
 import PropertyListingsPage from './components/PropertyListingsPage';
@@ -31,6 +32,7 @@ function App() {
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
             <Route path="/menu" element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/menu" element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />
             <Route path="/sell-property" element={<ProtectedRoute><SellPropertyPage /></ProtectedRoute>} />
            <Route path="/buy-property" element={<ProtectedRoute><PropertyListingsPage /></ProtectedRoute>} />
