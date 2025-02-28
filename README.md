@@ -145,15 +145,41 @@ BlockEstate revolutionizes real estate transactions by leveraging blockchain tec
 
 ## 🔗 Smart Contract Deployment
 
+### Setting Up Local Blockchain and MetaMask Network
+
+1. **Start Local Blockchain**
 ```bash
 # Terminal A - Start local blockchain
 cd real-estate-contract
 npx hardhat node
+```
 
+2. **Configure MetaMask Network**
+   - Open MetaMask browser extension
+   - Click on the network dropdown
+   - Select "Add Network"
+   - Enter the following details:
+     - **Network Name**: Hardhat Local Network
+     - **RPC URL**: `http://127.0.0.1:8545`
+     - **Chain ID**: `31337`
+     - **Currency Symbol**: `ETH`
+
+3. **Import Hardhat Accounts**
+   - Copy one of the private keys from the Hardhat node console
+   - In MetaMask, click "Import Account"
+   - Paste the private key
+   - Repeat for additional test accounts
+
+4. **Deploy Smart Contract**
+```bash
 # Terminal B - Deploy smart contract
 cd real-estate-contract
 npx hardhat run scripts/deploy.js --network localhost
 ```
+
+### Note
+- Ensure Hardhat local blockchain is running before deploying the contract
+- Each time you restart the Hardhat node, you'll need to redeploy the contract and update the contract address in the frontend configuration
 
 ## 🐍 Backend Setup
 
@@ -217,8 +243,6 @@ BlockEstate implements multiple security measures:
 - JWT-based authentication with proper expiration
 - Encrypted storage of sensitive data
 - Secure blockchain transactions
-
-
 
 ## 📄 License
 
